@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeQuiz - Aplicación de Tests</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f472b6;
+            --background: #f9fafb;
+            --text: #1f2937;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+        
+        .screens > div {
+            display: none;
+        }
+        
+        .screens > div.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        input[type="number"], select, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: #9ca3af;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #6b7280;
+        }
+        
+        .question-counter {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .question {
+            margin-bottom: 2rem;
+        }
+        
+        .question p {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .option {
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .option.selected {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+        
+        .option.correct {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .option.incorrect {
+            border-color: var(--error);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .result-summary {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .score {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .missed-questions h3 {
+            margin-bottom: 1rem;
+            color: var(--error);
+        }
+        
+        .missed-item {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+        }
+        
+        .missed-item p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .correct-answer {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        /* Estilos para entrada manual de preguntas */
+        .option-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .option-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .option-input input[type="text"] {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+        }
+        
+        .help-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        #added-questions-list {
+            margin-top: 1rem;
+            padding-left: 1.5rem;
+        }
+        
+        #added-questions-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .added-questions {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: #f3f4f6;
+            text-align: center;
+        }
+        
+        .status-message.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .reset-database {
+            margin-top: 1rem;
+            text-align: right;
+        }
+        
+        .btn-danger {
+            background-color: #f87171;
+        }
+        
+        .btn-danger:hover {
+            background-color: #ef4444;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VibeQuiz - Aplicación de Tests</h1>
+        
+        <div class="screens">
+            <!-- Pantalla de configuración -->
+            <div id="config-screen" class="active">
+                <h2>Configuración del test</h2>
+                
+                <div class="form-group">
+                    <label for="num-questions">Número de preguntas:</label>
+                    <input type="number" id="num-questions" min="5" max="50" value="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>Selecciona los temas:</label>
+                    <div class="checkbox-group" id="topics">
+                        <!-- Los temas se cargarán dinámicamente desde tus preguntas -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quiz-data">Cargar preguntas adicionales:</label>
+                    <input type="file" id="quiz-data" accept=".json">
+                    <p class="help-text">Sube un archivo JSON con preguntas adicionales o usa el botón de abajo para introducirlas manualmente</p>
+                </div>
+                
+                <div id="database-status" class="status-message">
+                    <!-- Mensaje de estado de la base de datos -->
+                </div>
+                
+                <div class="button-group">
+                    <button id="manual-entry" class="btn-secondary">Introducir Preguntas</button>
+                    <button id="start-quiz">Comenzar Test</button>
+                </div>
+                
+                <div class="reset-database">
+                    <button id="reset-db" class="btn-danger btn-sm">Borrar todas las preguntas</button>
+                </div>
+            </div>
+            
+            <!-- Pantalla para introducir preguntas manualmente -->
+            <div id="manual-entry-screen">
+                <h2>Introducir preguntas</h2>
+                
+                <div class="form-group">
+                    <label for="question-text-input">Pregunta:</label>
+                    <input type="text" id="question-text-input" placeholder="Escribe tu pregunta aquí">
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic-input">Tema/Categoría:</label>
+                    <input type="text" id="topic-input" placeholder="Ej: Tema 1, Concepto A, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label>Opciones (marca la correcta):</label>
+                    <div class="option-input-container">
+                        <div class="option-input">
+                            <input type="radio" name="correct-option" id="option-correct-0" value="0" checked>
+                            <input type="text" id="option-text-0" placeholder="Opción 1">
+                        </div>
+                        <div class="option-input">
+                            <input type="radio" name="correct-option" id="option-correct-1" value="1">
+                            <input type="text" id="option-text-1" placeholder="Opción 2">
+                        </div>
+                        <div class="option-input">
+                            <input type="radio" name="correct-option" id="option-correct-2" value="2">
+                            <input type="text" id="option-text-2" placeholder="Opción 3">
+                        </div>
+                        <div class="option-input">
+                            <input type="radio" name="correct-option" id="option-correct-3" value="3">
+                            <input type="text" id="option-text-3" placeholder="Opción 4">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="add-question">Añadir Pregunta</button>
+                    <button id="finish-adding" class="btn-secondary">Finalizar</button>
+                    <button id="export-questions" class="btn-secondary">Exportar Preguntas</button>
+                </div>
+                
+                <div class="added-questions">
+                    <h3>Preguntas añadidas (<span id="question-count-manual">0</span>):</h3>
+                    <ul id="added-questions-list"></ul>
+                </div>
+            </div>
+            
+            <!-- Pantalla de pregunta -->
+            <div id="question-screen">
+                <div class="question-counter">Pregunta <span id="current-question">1</span> de <span id="total-questions">10</span></div>
+                
+                <div class="question">
+                    <p id="question-text">¿Cuál es la capital de Francia?</p>
+                    <div class="options" id="options-container">
+                        <!-- Las opciones se generarán dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="prev-question" class="btn-secondary">Anterior</button>
+                    <button id="next-question">Siguiente</button>
+                </div>
+            </div>
+            
+            <!-- Pantalla de resultados -->
+            <div id="results-screen">
+                <div class="result-summary">
+                    <h2>Resultados</h2>
+                    <p class="score">Has acertado <span id="correct-count">0</span> de <span id="question-count">10</span></p>
+                    <p>¡<span id="result-message">Buen trabajo</span>!</p>
+                </div>
+                
+                <div class="missed-questions" id="missed-container">
+                    <h3>Preguntas falladas:</h3>
+                    <!-- Las preguntas falladas se generarán dinámicamente -->
+                </div>
+                
+                <div class="button-group">
+                    <button id="retry-missed">Practicar falladas</button>
+                    <button id="new-quiz">Nuevo Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicialización de variables globales
+        let questionDatabase = {}; // Objeto para almacenar las preguntas por tema
+        let currentQuiz = []; // Array para las preguntas del test actual
+        let currentQuestionIndex = 0; // Índice de la pregunta actual
+        let missedQuestions = []; // Array para almacenar las preguntas falladas
+        
+        // Elementos DOM
+        const configScreen = document.getElementById('config-screen');
+        const manualEntryScreen = document.getElementById('manual-entry-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        
+        const fileInput = document.getElementById('quiz-data');
+        const startQuizBtn = document.getElementById('start-quiz');
+        const manualEntryBtn = document.getElementById('manual-entry');
+        const addQuestionBtn = document.getElementById('add-question');
+        const finishAddingBtn = document.getElementById('finish-adding');
+        const exportQuestionsBtn = document.getElementById('export-questions');
+        const resetDbBtn = document.getElementById('reset-db');
+        
+        const numQuestionsInput = document.getElementById('num-questions');
+        const topicsContainer = document.getElementById('topics');
+        const databaseStatus = document.getElementById('database-status');
+        
+        // Función para guardar la base de datos en localStorage
+        function saveDatabase() {
+            localStorage.setItem('vibeQuiz_questionDatabase', JSON.stringify(questionDatabase));
+            updateDatabaseStatus();
+        }
+        
+        // Función para cargar la base de datos desde localStorage
+        function loadDatabase() {
+            const savedDb = localStorage.getItem('vibeQuiz_questionDatabase');
+            if (savedDb) {
+                try {
+                    questionDatabase = JSON.parse(savedDb);
+                    updateDatabaseStatus();
+                    generateTopicsCheckboxes();
+                    return true;
+                } catch (error) {
+                    console.error('Error al cargar la base de datos guardada:', error);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        // Función para actualizar el estado de la base de datos en la interfaz
+        function updateDatabaseStatus() {
+            const totalTopics = Object.keys(questionDatabase).length;
+            const totalQuestions = Object.values(questionDatabase).flat().length;
+            
+            if (totalQuestions > 0) {
+                databaseStatus.innerHTML = `
+                    <strong>Base de datos actual:</strong> ${totalTopics} temas con un total de ${totalQuestions} preguntas.
+                    <br>Tus preguntas se guardan automáticamente en este navegador.
+                `;
+                databaseStatus.classList.add('success');
+                startQuizBtn.disabled = false;
+            } else {
+                databaseStatus.innerHTML = `
+                    No hay preguntas en la base de datos. Carga un archivo JSON o añade preguntas manualmente.
+                `;
+                databaseStatus.classList.remove('success');
+                startQuizBtn.disabled = true;
+            }
+        }
+        
+        // Función para cargar preguntas desde un archivo JSON
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validar la estructura del JSON
+                    if (typeof data !== 'object') {
+                        alert('Formato de archivo inválido. Debe ser un objeto JSON con temas como claves.');
+                        return;
+                    }
+                    
+                    // Añadir las preguntas a la base de datos existente en lugar de reemplazarla
+                    for (const topic in data) {
+                        if (!questionDatabase[topic]) {
+                            questionDatabase[topic] = [];
+                        }
+                        
+                        // Añadir preguntas evitando duplicados
+                        data[topic].forEach(newQuestion => {
+                            const isDuplicate = questionDatabase[topic].some(existingQuestion => 
+                                existingQuestion.question === newQuestion.question
+                            );
+                            
+                            if (!isDuplicate) {
+                                questionDatabase[topic].push(newQuestion);
+                            }
+                        });
+                    }
+                    
+                    // Guardar en localStorage
+                    saveDatabase();
+                    
+                    // Generar los checkboxes de temas dinámicamente
+                    generateTopicsCheckboxes();
+                    
+                    // Notificar al usuario
+                    const newQuestionsCount = Object.values(data).flat().length;
+                    alert(`Preguntas cargadas correctamente. Se han añadido ${newQuestionsCount} preguntas a tu base de datos.`);
+                    
+                    // Limpiar el input file
+                    fileInput.value = '';
+                } catch (error) {
+                    alert('Error al cargar el archivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        // Función para generar checkboxes de temas
+        function generateTopicsCheckboxes() {
+            topicsContainer.innerHTML = '';
+            
+            Object.keys(questionDatabase).forEach((topic, index) => {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `topic-${index}`;
+                checkbox.value = topic;
+                checkbox.checked = true;
+                
+                const label = document.createElement('label');
+                label.htmlFor = `topic-${index}`;
+                label.textContent = topic + ` (${questionDatabase[topic].length})`;
+                
+                checkboxItem.appendChild(checkbox);
+                checkboxItem.appendChild(label);
+                topicsContainer.appendChild(checkboxItem);
+            });
+        }
+        
+        // Navegación a la pantalla de entrada manual
+        manualEntryBtn.addEventListener('click', function() {
+            configScreen.classList.remove('active');
+            manualEntryScreen.classList.add('active');
+            updateAddedQuestionsList();
+        });
+        
+        // Añadir una pregunta manualmente
+        addQuestionBtn.addEventListener('click', function() {
+            const questionText = document.getElementById('question-text-input').value.trim();
+            const topic = document.getElementById('topic-input').value.trim();
+            
+            // Validar campos
+            if (!questionText || !topic) {
+                alert('Por favor, rellena la pregunta y el tema.');
+                return;
+            }
+            
+            // Obtener opciones
+            const options = [];
+            for (let i = 0; i < 4; i++) {
+                const optionText = document.getElementById(`option-text-${i}`).value.trim();
+                if (!optionText) {
+                    alert('Por favor, rellena todas las opciones.');
+                    return;
+                }
+                options.push(optionText);
+            }
+            
+            // Obtener respuesta correcta
+            const correctAnswer = parseInt(document.querySelector('input[name="correct-option"]:checked').value);
+            
+            // Añadir pregunta a la base de datos
+            if (!questionDatabase[topic]) {
+                questionDatabase[topic] = [];
+            }
+            
+            // Verificar si la pregunta ya existe
+            const isDuplicate = questionDatabase[topic].some(q => q.question === questionText);
+            
+            if (isDuplicate) {
+                if (!confirm('Esta pregunta ya existe en la base de datos. ¿Quieres añadirla de todos modos?')) {
+                    return;
+                }
+            }
+            
+            questionDatabase[topic].push({
+                question: questionText,
+                options: options,
+                correctAnswer: correctAnswer
+            });
+            
+            // Guardar en localStorage
+            saveDatabase();
+            
+            // Actualizar lista de preguntas añadidas
+            updateAddedQuestionsList();
+            
+            // Limpiar el formulario
+            document.getElementById('question-text-input').value = '';
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`option-text-${i}`).value = '';
+            }
+            document.getElementById('option-correct-0').checked = true;
+        });
+        
+        // Actualizar lista de preguntas añadidas
+        function updateAddedQuestionsList() {
+            const questionCountEl = document.getElementById('question-count-manual');
+            const questionsList = document.getElementById('added-questions-list');
+            
+            // Contar preguntas totales
+            const totalQuestions = Object.values(questionDatabase).flat().length;
+            questionCountEl.textContent = totalQuestions;
+            
+            // Actualizar lista visual
+            questionsList.innerHTML = '';
+            
+            Object.entries(questionDatabase).forEach(([topic, questions]) => {
+                questions.forEach((q, idx) => {
+                    const li = document.createElement('li');
+                    li.textContent = `[${topic}] ${q.question}`;
+                    questionsList.appendChild(li);
+                });
+            });
+        }
+        
+        // Finalizar entrada manual
+        finishAddingBtn.addEventListener('click', function() {
+            manualEntryScreen.classList.remove('active');
+            configScreen.classList.add('active');
+            
+            // Actualizar información en la pantalla principal
+            updateDatabaseStatus();
+            generateTopicsCheckboxes();
+        });
+        
+        // Exportar preguntas a un archivo JSON
+        exportQuestionsBtn.addEventListener('click', function() {
+            const data = JSON.stringify(questionDatabase, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mis_preguntas.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+        
+        // Resetear base de datos
+        resetDbBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que quieres borrar TODAS las preguntas? Esta acción no se puede deshacer.')) {
+                questionDatabase = {};
+                saveDatabase();
+                generateTopicsCheckboxes();
+                alert('Todas las preguntas han sido eliminadas.');
+            }
+        });
+        
+        // Comenzar quiz
+        startQuizBtn.addEventListener('click', function() {
+            // Verificar que hay temas seleccionados
+            const selectedTopics = Array.from(document.querySelectorAll('#topics input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedTopics.length === 0) {
+                alert('Por favor, selecciona al menos un tema.');
+                return;
+            }
+            
+            // Obtener número de preguntas
+            const numQuestions = parseInt(numQuestionsInput.value);
+            if (isNaN(numQuestions) || numQuestions < 1) {
+                alert('Por favor, introduce un número válido de preguntas.');
+                return;
+            }
+            
+            // Recopilar todas las preguntas de los temas seleccionados
+            let allQuestions = [];
+            selectedTopics.forEach(topic => {
+                if (questionDatabase[topic]) {
+                    allQuestions = allQuestions.concat(
+                        questionDatabase[topic].map(q => ({...q, topic}))
+                    );
+                }
+            });
+            
+            // Verificar si hay suficientes preguntas
+            if (allQuestions.length === 0) {
+                alert('No hay preguntas disponibles en los temas seleccionados.');
+                return;
+            }
+            
+            if (allQuestions.length < numQuestions) {
+                alert(`Solo hay ${allQuestions.length} preguntas disponibles. Se usarán todas.`);
+                currentQuiz = allQuestions;
+            } else {
+                // Seleccionar preguntas aleatoriamente
+                currentQuiz = shuffleArray(allQuestions).slice(0, numQuestions);
+            }
+            
+            // Iniciar quiz
+            currentQuestionIndex = 0;
+            missedQuestions = [];
+            showQuestion(0);
+            
+            // Cambiar a pantalla de preguntas
+            configScreen.classList.remove('active');
+            questionScreen.classList.add('active');
+        });
+        
+        // Función para mezclar un array (algoritmo Fisher-Yates)
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Mostrar pregunta actual
+        function showQuestion(index) {
+            if (index < 0 || index >= currentQuiz.length) return;
+            
+            const question = currentQuiz[index];
+            
+            // Actualizar contador
+            document.getElementById('current-question').textContent = index + 1;
+            document.getElementById('total-questions').textContent = currentQuiz.length;
+            
+            // Mostrar texto de la pregunta
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Generar opciones
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, i) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.dataset.index = i;
+                
+                // Si la pregunta ya tiene una respuesta seleccionada
+                if (question.userAnswer !== undefined) {
+                    if (i === question.userAnswer) {
+                        optionDiv.classList.add('selected');
+                    }
+                    
+                    if (i === question.correctAnswer) {
+                        optionDiv.classList.add('correct');
+                    } else if (i === question.userAnswer) {
+                        optionDiv.classList.add('incorrect');
+                    }
+                }
+                
+                optionDiv.addEventListener('click', function() {
+                    // Solo permitir seleccionar si no se ha respondido ya
+                    if (question.userAnswer === undefined) {
+                        selectOption(index, i);
+                    }
+                });
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            // Configurar botones de navegación
+            document.getElementById('prev-question').disabled = index === 0;
+            
+            const nextButton = document.getElementById('next-question');
+            if (index === currentQuiz.length - 1) {
+                nextButton.textContent = 'Ver Resultados';
+            } else {
+                nextButton.textContent = 'Siguiente';
+            }
+        }
+        
+        // Seleccionar una opción
+        function selectOption(questionIndex, optionIndex) {
+            const question = currentQuiz[questionIndex];
+            question.userAnswer = optionIndex;
+            
+            // Actualizar UI para mostrar selección
+            const options = document.querySelectorAll('#options-container .option');
+            
+            options.forEach((option, i) => {
+                if (i === optionIndex) {
+                    option.classList.add('selected');
+                }
+                
+                if (i === question.correctAnswer) {
+                    option.classList.add('correct');
+                } else if (i === optionIndex) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Si la respuesta es incorrecta, añadir a preguntas falladas
+            if (optionIndex !== question.correctAnswer) {
+                if (!missedQuestions.some(q => q.question === question.question)) {
+                    missedQuestions.push(question);
+                }
+            }
+        }
+        
+        // Eventos de navegación entre preguntas
+        document.getElementById('prev-question').addEventListener('click', function() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        });
+        
+        document.getElementById('next-question').addEventListener('click', function() {
+            if (currentQuestionIndex < currentQuiz.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            } else {
+                showResults();
+            }
+        });
+        
+        // Mostrar pantalla de resultados
+        function showResults() {
+            // Calcular resultados
+            const answeredQuestions = currentQuiz.filter(q => q.userAnswer !== undefined);
+            const correctAnswers = answeredQuestions.filter(q => q.userAnswer === q.correctAnswer);
+            
+            // Actualizar UI
+            document.getElementById('correct-count').textContent = correctAnswers.length;
+            document.getElementById('question-count').textContent = currentQuiz.length;
+            
+            // Mensaje según el resultado
+            const resultMessage = document.getElementById('result-message');
+            const percentage = (correctAnswers.length / currentQuiz.length) * 100;
+            
+            if (percentage >= 90) {
+                resultMessage.textContent = '¡Excelente trabajo!';
+            } else if (percentage >= 70) {
+                resultMessage.textContent = '¡Buen trabajo!';
+            } else if (percentage >= 50) {
+                resultMessage.textContent = 'Puedes mejorar';
+            } else {
+                resultMessage.textContent = 'Necesitas repasar más';
+            }
+            
+            // Mostrar preguntas falladas
+            const missedContainer = document.getElementById('missed-container');
+            
+            if (missedQuestions.length === 0) {
+                missedContainer.innerHTML = '<h3>¡No has fallado ninguna pregunta!</h3>';
+                document.getElementById('retry-missed').style.display = 'none';
+            } else {
+                document.getElementById('retry-missed').style.display = 'block';
+                
+                let missedHTML = '<h3>Preguntas falladas:</h3>';
+                missedQuestions.forEach((q, i) => {
+                    missedHTML += `
+                        <div class="missed-item">
+                            <p><strong>${i+1}. ${q.question}</strong> ${q.topic ? `(${q.topic})` : ''}</p>
+                            <p>Tu respuesta: ${q.options[q.userAnswer]}</p>
+                            <p class="correct-answer">Respuesta correcta: ${q.options[q.correctAnswer]}</p>
+                        </div>
+                    `;
+                });
+                
+                missedContainer.innerHTML = missedHTML;
+            }
+            
+            // Cambiar a pantalla de resultados
+            questionScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+            
+            // Guardar preguntas falladas en localStorage para referencia futura
+            saveMissedQuestions();
+        }
+        
+        // Guardar preguntas falladas en localStorage
+        function saveMissedQuestions() {
+            // Si ya existe un arreglo de preguntas falladas, lo cargamos
+            let allMissedQuestions = [];
+            const savedMissed = localStorage.getItem('vibeQuiz_missedQuestions');
+            if (savedMissed) {
+                try {
+                    allMissedQuestions = JSON.parse(savedMissed);
+                } catch (error) {
+                    console.error('Error al cargar preguntas falladas anteriores:', error);
+                }
+            }
+            
+            // Añadir las nuevas preguntas falladas evitando duplicados
+            missedQuestions.forEach(newMissed => {
+                if (!allMissedQuestions.some(existingMissed => 
+                    existingMissed.question === newMissed.question
+                )) {
+                    allMissedQuestions.push(newMissed);
+                }
+            });
+            
+            // Guardar el arreglo completo
+            localStorage.setItem('vibeQuiz_missedQuestions', JSON.stringify(allMissedQuestions));
+        }
+        
+        // Eventos de botones de resultados
+        document.getElementById('retry-missed').addEventListener('click', function() {
+            // Crear nuevo quiz solo con preguntas falladas
+            currentQuiz = [...missedQuestions];
+            currentQuestionIndex = 0;
+            
+            // Resetear respuestas de usuario
+            currentQuiz.forEach(q => delete q.userAnswer);
+            
+            // Resetear array de preguntas falladas
+            missedQuestions = [];
+            
+            // Mostrar primera pregunta
+            showQuestion(0);
+            
+            // Cambiar a pantalla de preguntas
+            resultsScreen.classList.remove('active');
+            questionScreen.classList.add('active');
+        });
+        
+        document.getElementById('new-quiz').addEventListener('click', function() {
+            // Volver a la pantalla de configuración
+            resultsScreen.classList.remove('active');
+            configScreen.classList.add('active');
+        });
+        
+        // Cargar preguntas falladas anteriores
+        function loadMissedQuestions() {
+            const savedMissed = localStorage.getItem('vibeQuiz_missedQuestions');
+            if (savedMissed) {
+                try {
+                    const parsed = JSON.parse(savedMissed);
+                    
+                    // Agrupar por tema
+                    const grouped = {};
+                    parsed.forEach(q => {
+                        const topic = q.topic || 'Preguntas falladas';
+                        if (!grouped[topic]) {
+                            grouped[topic] = [];
+                        }
+                        
+                        // Eliminar propiedades userAnswer para evitar problemas
+                        const cleanQuestion = {...q};
+                        delete cleanQuestion.userAnswer;
+                        
+                        grouped[topic].push(cleanQuestion);
+                    });
+                    
+                    return grouped;
+                } catch (error) {
+                    console.error('Error al cargar preguntas falladas:', error);
+                }
+            }
+            return null;
+        }
+        
+        // Inicialización de la aplicación
+        window.addEventListener('load', function() {
+            // Cargar la base de datos principal
+            const loaded = loadDatabase();
+            
+            // Si no hay base de datos, intentar cargar las preguntas falladas
+            if (!loaded || Object.keys(questionDatabase).length === 0) {
+                const missedQuestions = loadMissedQuestions();
+                
+                if (missedQuestions) {
+                    // Añadir las preguntas falladas a la base de datos
+                    Object.keys(missedQuestions).forEach(topic => {
+                        if (!questionDatabase[topic]) {
+                            questionDatabase[topic] = [];
+                        }
+                        
+                        missedQuestions[topic].forEach(q => {
+                            // Evitar duplicados
+                            if (!questionDatabase[topic].some(existingQ => existingQ.question === q.question)) {
+                                questionDatabase[topic].push(q);
+                            }
+                        });
+                    });
+                    
+                    // Guardar la base de datos actualizada
+                    saveDatabase();
+                }
+            }
+            
+            // Actualizar interfaz
+            updateDatabaseStatus();
+            generateTopicsCheckboxes();
+        });
+    </script>
+</body>
+</html>
